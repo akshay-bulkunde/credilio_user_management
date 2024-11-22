@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import Hash from '@adonisjs/core/services/hash'
 import User from '#models/user'
 
 export default class AuthController {
@@ -35,6 +36,42 @@ export default class AuthController {
     } catch (error) {
       return response.status(500).json({
         message: 'Something went wrong during registration',
+        error: error.message,
+      })
+    }
+  }
+
+  //user login
+  public async login({ request, response }: HttpContext) {
+    try {
+      const { email, password } = request.only(['email', 'password'])
+
+      if (!email || !password) {
+        return response.status(400).json({
+          message: 'Email and password are required',
+        })
+      }
+
+      const user = await User.findBy('email', email)
+      if (!user) {
+        return response.status(404).json({
+          message: 'Invalid credentials',
+        })
+      }
+
+      const isPasswordValid = await Hash.verify(user.password, password)
+      if (!isPasswordValid) {
+        return response.status(401).json({
+          message: 'Invalid credentials',
+        })
+      }
+
+      return response.status(200).json({
+        message: 'Login successful',
+      })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'An error occurred during login',
         error: error.message,
       })
     }
