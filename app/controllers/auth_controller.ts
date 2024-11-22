@@ -76,4 +76,33 @@ export default class AuthController {
       })
     }
   }
+
+  //user logout
+  public async logout({ request, response }: HttpContext) {
+    try {
+      const { email } = request.only(['email'])
+
+      if (!email) {
+        return response.status(400).json({
+          message: 'Email required',
+        })
+      }
+
+      const user = await User.findBy('email', email)
+      if (!user) {
+        return response.status(404).json({
+          message: 'Invalid credentials',
+        })
+      }
+
+      return response.status(200).json({
+        message: 'Logout successful',
+      })
+    } catch (error) {
+      return response.status(500).json({
+        message: 'An error occurred during logout',
+        error: error.message,
+      })
+    }
+  }
 }
