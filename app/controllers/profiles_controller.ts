@@ -70,10 +70,8 @@ export default class ProfilesController {
   }
 
   // Update user profile
-  public async update({ request, response, auth }: HttpContext) {
+  public async update({ request, response }: HttpContext) {
     try {
-      const user = auth.user!
-
       const { name, mobile, email, gender, dateOfBirth } = request.only([
         'name',
         'mobile',
@@ -82,7 +80,14 @@ export default class ProfilesController {
         'dateOfBirth',
       ])
 
-      const profile = await Profile.query().where('userId', user.id).first()
+      const existingUser = await User.findBy('email', email)
+      if (!existingUser) {
+        return response.status(409).json({
+          message: 'Provided email does not exist',
+        })
+      }
+
+      const profile = await Profile.query().where('userId', existingUser.id).first()
 
       if (!profile) {
         return response.status(404).json({
@@ -111,13 +116,17 @@ export default class ProfilesController {
   }
 
   // Delete user profile
-  public async delete({ request, response, auth }: HttpContext) {
+  public async delete({ request, response }: HttpContext) {
     try {
-      const user = auth.user!
+      const { email } = request.only(['email'])
+      const existingUser = await User.findBy('email', email)
+      if (!existingUser) {
+        return response.status(409).json({
+          message: 'Provided email does not exist',
+        })
+      }
 
-      const { mobile } = request.only(['mobile'])
-
-      const profile = await Profile.query().where('userId', user.id).where('mobile', mobile).first()
+      const profile = await Profile.query().where('userId', existingUser.id).first()
 
       if (!profile) {
         return response.status(404).json({

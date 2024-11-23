@@ -1,29 +1,25 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Hash from '@adonisjs/core/services/hash'
 import User from '#models/user'
+import { registerValidator, loginValidator } from '#validators/auth'
 
 export default class AuthController {
   // Register a new user
   public async register({ request, response }: HttpContext) {
     try {
-      const { email, password } = request.only(['email', 'password'])
+      const payload = await registerValidator.validate(request.all())
 
-      if (!email || !password) {
-        return response.status(400).json({
-          message: 'Email and password are required',
-        })
-      }
-
-      const existingUser = await User.findBy('email', email)
+      const existingUser = await User.findBy('email', payload.email)
       if (existingUser) {
         return response.status(409).json({
           message: 'User with this email already exists',
         })
       }
 
+      // Create the user
       const user = await User.create({
-        email,
-        password,
+        email: payload.email,
+        password: payload.password,
       })
 
       return response.status(201).json({
@@ -41,25 +37,19 @@ export default class AuthController {
     }
   }
 
-  //user login
+  // User login
   public async login({ request, response }: HttpContext) {
     try {
-      const { email, password } = request.only(['email', 'password'])
+      const payload = await loginValidator.validate(request.all())
 
-      if (!email || !password) {
-        return response.status(400).json({
-          message: 'Email and password are required',
-        })
-      }
-
-      const user = await User.findBy('email', email)
+      const user = await User.findBy('email', payload.email)
       if (!user) {
         return response.status(404).json({
           message: 'Invalid credentials',
         })
       }
 
-      const isPasswordValid = await Hash.verify(user.password, password)
+      const isPasswordValid = await Hash.verify(user.password, payload.password)
       if (!isPasswordValid) {
         return response.status(401).json({
           message: 'Invalid credentials',
@@ -77,7 +67,7 @@ export default class AuthController {
     }
   }
 
-  //user logout
+  // User logout
   public async logout({ request, response }: HttpContext) {
     try {
       const { email } = request.only(['email'])
