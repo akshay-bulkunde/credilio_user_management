@@ -2,10 +2,16 @@ import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import Profile from '#models/profile'
 import { DateTime } from 'luxon'
+
 export default class ProfilesController {
   // Create user profile
-  public async create({ request, response }: HttpContext) {
+  public async create({ auth, request, response }: HttpContext) {
     try {
+      const token = auth.user?.currentAccessToken.identifier
+      if (!token) {
+        return response.badRequest({ message: 'Token not found' })
+      }
+
       const { name, mobile, email, gender, dateOfBirth } = request.only([
         'name',
         'mobile',

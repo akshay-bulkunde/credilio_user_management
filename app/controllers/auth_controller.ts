@@ -38,7 +38,7 @@ export default class AuthController {
   }
 
   // User login
-  public async login({ request, response }: HttpContext) {
+  public async login({ auth, request, response }: HttpContext) {
     try {
       const payload = await loginValidator.validate(request.all())
 
@@ -56,7 +56,10 @@ export default class AuthController {
         })
       }
 
+      const token = await User.accessTokens.create(user)
+
       return response.status(200).json({
+        token: token,
         message: 'Login successful',
       })
     } catch (error) {
@@ -68,7 +71,7 @@ export default class AuthController {
   }
 
   // User logout
-  public async logout({ request, response }: HttpContext) {
+  public async logout({ auth, request, response }: HttpContext) {
     try {
       const { email } = request.only(['email'])
 
@@ -84,6 +87,12 @@ export default class AuthController {
           message: 'Invalid credentials',
         })
       }
+
+      const token = auth.user?.currentAccessToken.identifier
+      if (!token) {
+        return response.badRequest({ message: 'Token not found' })
+      }
+      await User.accessTokens.delete(user, token)
 
       return response.status(200).json({
         message: 'Logout successful',
