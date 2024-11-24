@@ -49,8 +49,12 @@ export default class ProfilesController {
   }
 
   // View all users
-  public async view({ response }: HttpContext) {
+  public async view({ auth, response }: HttpContext) {
     try {
+      const token = auth.user?.currentAccessToken.identifier
+      if (!token) {
+        return response.badRequest({ message: 'Token not found' })
+      }
       const profiles = await Profile.query()
 
       if (profiles.length === 0) {
@@ -76,8 +80,12 @@ export default class ProfilesController {
   }
 
   // Update user profile
-  public async update({ request, response }: HttpContext) {
+  public async update({ auth, request, response }: HttpContext) {
     try {
+      const token = auth.user?.currentAccessToken.identifier
+      if (!token) {
+        return response.badRequest({ message: 'Token not found' })
+      }
       const { name, mobile, email, gender, dateOfBirth } = request.only([
         'name',
         'mobile',
@@ -122,13 +130,17 @@ export default class ProfilesController {
   }
 
   // Delete user profile
-  public async delete({ request, response }: HttpContext) {
+  public async delete({ auth, request, response }: HttpContext) {
     try {
-      const { email } = request.only(['email'])
-      const existingUser = await User.findBy('email', email)
+      const token = auth.user?.currentAccessToken.identifier
+      if (!token) {
+        return response.badRequest({ message: 'Token not found' })
+      }
+      const { mobile } = request.only(['mobile'])
+      const existingUser = await Profile.findBy('mobile', mobile)
       if (!existingUser) {
         return response.status(409).json({
-          message: 'Provided email does not exist',
+          message: 'Provided mobile does not exist',
         })
       }
 
