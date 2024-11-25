@@ -38,13 +38,13 @@ export default class AuthController {
   }
 
   // User login
-  public async login({ auth, request, response }: HttpContext) {
+  public async login({ request, response }: HttpContext) {
     try {
       const payload = await loginValidator.validate(request.all())
 
       const user = await User.findBy('email', payload.email)
       if (!user) {
-        return response.status(404).json({
+        return response.status(401).json({
           message: 'Invalid credentials',
         })
       }
