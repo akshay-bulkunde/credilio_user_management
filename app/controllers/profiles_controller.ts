@@ -6,10 +6,14 @@ import { createValidator, updateValidator, deleteValidator } from '../validators
 
 export default class ProfilesController {
   // Create user profile
-  public async create({ request, response }: HttpContext) {
+  public async create({ auth, request, response }: HttpContext) {
     try {
       const payload = await createValidator.validate(request.all())
-      const existingUser = await User.findBy('email', payload.email)
+      const user = auth.user
+      if (!user) {
+        return response.status(401).json({ message: 'Unauthorized' })
+      }
+      const existingUser = await User.findBy('email', user.email)
       if (!existingUser) {
         return response.status(409).json({
           message: 'Provided email does not exist',
@@ -25,7 +29,7 @@ export default class ProfilesController {
         userId: existingUser.id,
         name: payload.name,
         mobile: payload.mobile,
-        email: payload.email,
+        email: existingUser.email,
         gender: payload.gender,
         dateOfBirth: DateTime.fromISO(dateOfBirthISO),
       })

@@ -18,7 +18,7 @@ export const createValidator = vine.compile(
   vine.object({
     name: vine.string().maxLength(255),
     mobile: vine.string().maxLength(10),
-    email: vine.string().email().normalizeEmail(),
+    // email: vine.string().email().normalizeEmail(),
     gender: vine.enum(['MALE', 'FEMALE']),
     dateOfBirth: vine.date(),
   })
