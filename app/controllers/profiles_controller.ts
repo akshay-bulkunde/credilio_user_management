@@ -119,21 +119,6 @@ export default class ProfilesController {
       }
       await profile.save()
 
-      // let dateOfBirthISO: string | undefined
-      // if (payload.dateOfBirth) {
-      //   if (payload.dateOfBirth instanceof Date) {
-      //     dateOfBirthISO = payload.dateOfBirth.toISOString()
-      //   } else {
-      //     return response.status(400).json({ message: 'Invalid date format for dateOfBirth' })
-      //   }
-      // }
-
-      // profile.name = payload.name || profile.name
-      // profile.mobile = payload.mobile || profile.mobile
-      // profile.email = payload.email || profile.email
-      // profile.gender = payload.gender || profile.gender
-      // profile.dateOfBirth = dateOfBirthISO ? DateTime.fromISO(dateOfBirthISO) : profile.dateOfBirth
-
       return response.status(200).json({
         message: 'Profile updated successfully',
         profile,
