@@ -84,8 +84,9 @@ export default class ProfilesController {
           message: 'Provided email does not exist',
         })
       }
+      console.log('Found user:', existingUser)
 
-      const profile = await Profile.query().where('id', existingUser.id).first()
+      const profile = await Profile.query().where('userId', existingUser.id).first()
 
       if (!profile) {
         return response.status(404).json({
@@ -93,20 +94,41 @@ export default class ProfilesController {
         })
       }
 
-      let dateOfBirthISO: string | undefined
-      if (payload.dateOfBirth) {
+      if (payload.name !== undefined) {
+        profile.name = payload.name
+      }
+      if (payload.mobile !== undefined) {
+        profile.mobile = payload.mobile
+      }
+      if (payload.email !== undefined) {
+        profile.email = payload.email
+      }
+      if (payload.gender !== undefined) {
+        profile.gender = payload.gender
+      }
+      if (payload.dateOfBirth !== undefined) {
         if (payload.dateOfBirth instanceof Date) {
-          dateOfBirthISO = payload.dateOfBirth.toISOString()
+          profile.dateOfBirth = DateTime.fromJSDate(payload.dateOfBirth)
         } else {
           return response.status(400).json({ message: 'Invalid date format for dateOfBirth' })
         }
       }
+      await profile.save()
 
-      profile.name = payload.name || profile.name
-      profile.mobile = payload.mobile || profile.mobile
-      profile.email = payload.email || profile.email
-      profile.gender = payload.gender || profile.gender
-      profile.dateOfBirth = dateOfBirthISO ? DateTime.fromISO(dateOfBirthISO) : profile.dateOfBirth
+      // let dateOfBirthISO: string | undefined
+      // if (payload.dateOfBirth) {
+      //   if (payload.dateOfBirth instanceof Date) {
+      //     dateOfBirthISO = payload.dateOfBirth.toISOString()
+      //   } else {
+      //     return response.status(400).json({ message: 'Invalid date format for dateOfBirth' })
+      //   }
+      // }
+
+      // profile.name = payload.name || profile.name
+      // profile.mobile = payload.mobile || profile.mobile
+      // profile.email = payload.email || profile.email
+      // profile.gender = payload.gender || profile.gender
+      // profile.dateOfBirth = dateOfBirthISO ? DateTime.fromISO(dateOfBirthISO) : profile.dateOfBirth
 
       return response.status(200).json({
         message: 'Profile updated successfully',
